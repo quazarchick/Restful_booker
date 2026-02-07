@@ -2,8 +2,8 @@ import requests
 import pytest
 from faker import Faker
 from requests import session
-
-from constants import BASE_URL, HEADERS
+from constants import BASE_URL, HEADERS, BOOKING_PATH
+from custom_requester.custom_requester import CustomRequester
 
 faker = Faker()
 
@@ -37,3 +37,19 @@ def booking_data():
             },
             "additionalneeds": "Piano"
         }
+
+@pytest.fixture(scope="session")
+def requester():
+    session = requests.Session()
+    return CustomRequester(session=session, base_url=BASE_URL)
+
+@pytest.fixture(scope="session")
+def booking_id(requester, booking_data):
+    response = requester.send_request(
+        method = "POST",
+        endpoint = BOOKING_PATH,
+        data = booking_data,
+        expected_status = 200
+    )
+    booking_id = response.json().get("bookingid")
+    return booking_id

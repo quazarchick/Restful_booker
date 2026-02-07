@@ -1,17 +1,20 @@
 import requests
-from constants import BASE_URL, HEADERS
+from constants import BASE_URL, HEADERS, BOOKING_PATH
 
 
 class TestBookings:
-    def test_create_booking(self, auth_session, booking_data):
-
+    def test_create_booking(self, auth_session, booking_data, requester, booking_id):
         #Создание бронирования
-        create_booking = auth_session.post(f'{BASE_URL}/booking', json=booking_data)
-        assert create_booking.status_code == 200, 'Ошибка создания бронирования'
-        booking_id = create_booking.json().get("bookingid")
-        assert booking_id is not None, "Идентификатор бронирования не найден"
-        assert create_booking.json()["booking"]["firstname"] == "Ryan", "Имя не совпадает"
-        assert create_booking.json()["booking"]["totalprice"] == 150000, "Заданная стоимость не совпадает"
+        response = requester.send_request(
+            method = "POST",
+            endpoint = BOOKING_PATH,
+            data = booking_data,
+            expected_status = 200
+        )
+        response_data = response.json()
+        assert response_data["bookingid"] is not None, "Идентификатор бронирования не найден"
+        assert response_data["booking"]["firstname"] == "Ryan", "Имя не совпадает"
+        assert response_data["booking"]["totalprice"] == 150000, "Заданная стоимость не совпадает"
 
         #Получение бронирования
         get_booking = auth_session.get(f'{BASE_URL}/booking/{booking_id}')
